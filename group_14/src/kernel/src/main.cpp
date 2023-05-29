@@ -17,9 +17,10 @@
 // Define entry point in asm to prevent C++ mangling
 extern "C"{
    void kernel_main();
+   uint32_t end;
 }
 
-extern uint32_t end; // This is defined in linker.ld
+
 
 // Overload the new operator for single object allocation
 void* operator new(std::size_t size) {
@@ -44,17 +45,14 @@ void operator delete[](void* ptr) noexcept {
 void kernel_main()
 {
 
-    // Initialize kernel memory manager with the end of the kernel image
-    init_kernel_memory(&end); // <------ THIS IS PART OF THE ASSIGNMENT
+	// Initialize Global Descriptor Table
+	init_gdt();
 
-    // Initialize Global Descriptor Table (GDT)
-    init_gdt();
+	// Initialize Interupt Descriptor Table
+	init_idt();
 
-    // Initialize Interrupt Descriptor Table (IDT)
-    init_idt();
-
-    // Initialize Interrupt Requests (IRQs)
-    init_irq();
+	// Initialize Interupt Descriptor Table
+	init_irq();
 
     // Initialize Paging
     init_paging(); // <------ THIS IS PART OF THE ASSIGNMENT
@@ -65,6 +63,10 @@ void kernel_main()
     // Setup PIT
     init_pit();   // <------ THIS IS PART OF THE ASSIGNMENT
 
+    
+    // Initialize kernel memory manager with the end of the kernel image
+    init_kernel_memory(&end); // <------ THIS IS PART OF THE ASSIGNMENT
+
     // Allocate some memory using kernel memory manager
 		// THIS IS PART OF THE ASSIGNMENT
     void* some_memory = malloc(12345); 
@@ -72,25 +74,18 @@ void kernel_main()
     void* memory3 = malloc(13331);
     char* memory4 = new char[1000]();
 
-....
-....
-...
-
-	// Initialize Global Descriptor Table
-	init_gdt();
-
-	// Initialize Interupt Descriptor Table
-	init_idt();
-
-	// Initialize Interupt Descriptor Table
-	init_irq();
 
 	// Initialize terminal and
 	// and display a string.
     terminal_initialize();
-    terminal_writestring("Welcome! ");
+    terminal_writestring("Welcome!");
+    print_memory_layout();
 
-    print_memory_layout()
+
+    free(some_memory);
+    free(memory2);
+    free(memory3);
+    free(memory4);
 
 
 	// Create interrupt handlers for interrupt 3 and 4
@@ -109,7 +104,7 @@ void kernel_main()
     asm volatile ("int $0x4");*/
 
     // Disable interrupts temporarily
-    /*asm volatile("sti");
+    asm volatile("sti");
 
     // Create an IRQ handler for IRQ1
     register_irq_handler(IRQ1, [](registers_t*, void*){
@@ -125,7 +120,7 @@ void kernel_main()
     // Print a message and enter an infinite loop to wait for interrupts
     // terminal_writestring("Waiting...\n");
     while(1){};
-    terminal_writestring("Done!...\n");*/
+    terminal_writestring("Done!...\n");
 }
 
 
